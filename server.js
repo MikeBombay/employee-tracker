@@ -62,6 +62,12 @@ const menu = () => {
     if (choices === "View all employees") {
       viewEmployees();
     }
+    if (choices === "Add a department") {
+      addDepartment();
+    }
+    if (choices === "Add a role") {
+      addRole();
+    }
     if (choices === "Finished") {
       console.log('Press Ctrl+C to exit application')
       db.end()
@@ -90,6 +96,7 @@ db.query(sql, (err, res) => {
     menu();
   });
 };
+
 const viewRoles = () => {
   const sql = `SELECT * FROM role`;
   db.query(sql, (err, res) => {
@@ -112,4 +119,64 @@ const viewDepartments = () => {
   });
 };
 
+const addDepartment = () => {
+  inquirer.prompt([
+    {
+      type: 'input', 
+      name: 'addDept',
+      message: "Enter department name",
+    }
+  ])
+    .then(answer => {
+      const sql = `INSERT INTO department (department_name)
+                  VALUES (?)`;
+      db.query(sql, answer.addDept, (err, result) => {
+        if (err) throw err;
+        console.log('Department Added'); 
+        viewDepartments();
+    });
+  });
+};
 
+const addRole = () => {
+  db.query(
+    `SELECT department.id, department.department_name FROM department`,
+    (err, res) => {
+      if (err) {
+        console.log(err);
+      }
+      const depChoices = res.map(({ id, department_name }) => ({
+        name: department_name,
+        value: id,
+      }));
+
+      inquirer.prompt([
+          {
+            type: "list",
+            name: "department",
+            message: "Select a department",
+            choices: depChoices,
+          },
+          { type: "input", 
+            name: "role", 
+            message: "Enter title of new role" 
+          },
+          { type: "number", 
+          name: "salary", 
+          message: "Enter salary (example: 60000.00)" 
+        },
+        ])
+        .then((answer) => {
+          const inputs = [answer.department, answer.role, answer.salary];
+          const sql =  `INSERT INTO role (department_id, title, salary) 
+          Values (?, ?, ?)`
+          db.query(sql, inputs, (err, result) => {
+              if (err) throw err;
+              console.log('Role Added'); 
+              viewRoles();
+            }
+          );
+        });
+    }
+  );
+};
