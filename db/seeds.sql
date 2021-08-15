@@ -14,19 +14,19 @@ VALUES
 ('Project Manager', 120000.0, 1),
 ('Engineer', 100000.0, 1),
 ('Clerk', 60000.0, 4),
-('HR Manager', 151123.0, 4),
+('HR Manager', 100000.0, 4),
 ('Accountant', 85000.0, 2);
 
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUES
-('Ronald', 'Firbank', 1, 1),
-('Virginia', 'Woolf', 2, NULL),
-('Piers', 'Gaveston', 2, NULL),
-('Charles', 'LeRoi', 3, 2),
-('Katherine', 'Mansfield', 4, NULL),
-('Dora', 'Carrington', 5, NULL),
-('Edward', 'Bellamy', 5, NULL),
-('Montague', 'Summers', 6, 3),
+('Ronald', 'Firbank', 1, NULL),
+('Virginia', 'Woolf', 2, 1),
+('Piers', 'Gaveston', 2, 1),
+('Charles', 'LeRoi', 3, NULL),
+('Katherine', 'Mansfield', 4, 4),
+('Dora', 'Carrington', 5, 8),
+('Edward', 'Bellamy', 5, 8),
+('Montague', 'Summers', 6, NULL),
 ('Octavia', 'Butler', 7, NULL),
 ('Unica', 'Zurn', 7, NULL);
