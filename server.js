@@ -8,7 +8,7 @@ const app = express();
 
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-// Connect to database
+
 const db = mysql.createConnection(
   {
     host: 'localhost',
@@ -67,6 +67,13 @@ const menu = () => {
     }
     if (choices === "Add a role") {
       addRole();
+    }
+    if (choices === "Add an employee") {
+      addEmployee();
+    }
+    if (choices === "Update an employee role") {
+      console.log('We are unable to update employee roles at this time')
+      menu();
     }
     if (choices === "Finished") {
       console.log('Press Ctrl+C to exit application')
@@ -180,3 +187,110 @@ const addRole = () => {
     }
   );
 };
+
+const addEmployee = () => {
+  inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "first",
+        message: "Enter employee's first name",
+        validate: (first) => {
+          if (first) {
+            return true;
+          } else {
+            console.log("Please enter the employee's first name");
+          }
+        },
+      },
+      {
+        type: "input",
+        name: "last",
+        message: "Enter employee's last name",
+        validate: (last) => {
+          if (last) {
+            return true;
+          } else {
+            console.log("Please enter the employee's last name");
+          }
+        },
+      },
+    ])
+    .then((answers) => {
+      const inputs= [answers.first, answers.last];
+      db.query(`SELECT role.id, role.title FROM role`, (err, res) => {
+        if (err) {
+          console.log(err);
+        }
+        const roleChoices = res.map(({ id, title }) => ({
+          name: title,
+          value: id,
+        }));
+
+        inquirer.prompt([
+            {
+              type: "list",
+              name: "role",
+              message: "Select a role",
+              choices: roleChoices,
+            },
+          ])
+          .then((answer) => {
+            const role = answer.role;
+            inputs.push(role);
+            db.query(
+              `SELECT * FROM employee WHERE manager_id is NULL`,
+              (err, res) => {
+                if (err) {
+                  console.log(err);
+                }
+                const managerChoices = res.map(
+                  ({ id, first_name, last_name}) => ({
+                    name: first_name + " " + last_name,
+                    value: id,
+                  })
+                );
+
+                inquirer.prompt([
+                    {
+                      type: "confirm",
+                      name: "report",
+                      message: "Does the employee report to a manager?",
+                      default: true,
+                    },
+                    {
+                      type: "list",
+                      name: "manager",
+                      message: "Select a manager",
+                      choices: managerChoices,
+                      when: function (answers) {
+                        return answers.confirm !== true;
+                      },
+                    },
+                  ])
+                  .then((answer) => {
+                    console.log(answer.manager);
+                    let manager;
+                    if (answer.manager) {
+                      manager = answer.manager;
+                    } else {
+                      manager = null;
+                    }
+                    inputs.push(manager);
+                    const sql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) 
+                    Values (?, ?, ?, ?)`
+                    db.query(sql, inputs, (err, res) => {
+                        if (err) throw err;
+                        console.log("Employee added:");
+                        console.log(inputs);
+
+                        menu();
+                      }
+                      );
+                    });
+                }
+              );
+            });
+        });
+      });
+  };
